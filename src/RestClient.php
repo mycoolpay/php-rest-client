@@ -7,6 +7,8 @@ use MyCoolPay\Logging\LoggerInterface;
 
 class RestClient
 {
+    const USER_AGENT = "MyCoolPay/PHP/RestClient";
+
     /**
      * @var string $baseUrl
      */
@@ -194,7 +196,7 @@ class RestClient
         $headers = array_merge([
             'Content-Type' => 'application/' . ($urlencoded ? 'x-www-form-urlencoded' : 'json'),
             'Accept' => ($decode_json ? 'application/json' : '*/*'),
-            'User-Agent' => 'MyCoolPay/PHP/RestClient',
+            'User-Agent' => static::USER_AGENT,
         ], $headers);
 
         $curl_headers = [];
