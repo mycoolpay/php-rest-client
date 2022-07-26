@@ -1,0 +1,41 @@
+{
+  "name": "mycoolpay/php-rest-client",
+  "type": "library",
+  "description": "My-CoolPay PHP HTTP and REST client",
+  "keywords": [
+    "mycoolpay",
+    "http",
+    "api",
+    "rest",
+    "json"
+  ],
+  "homepage": "https://github.com/mycoolpay/php-rest-client",
+  "license": "Apache-2.0",
+  "support": {
+    "forum": "https://t.me/mycoolpay",
+    "issues": "https://github.com/mycoolpay/php-rest-client/issues"
+  },
+  "authors": [
+    {
+      "name": "My-CoolPay",
+      "email": "support@my-coolpay.com",
+      "homepage": "https://my-coolpay.com/en/"
+    }
+  ],
+  "require": {
+    "php": ">=5.4",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "mycoolpay/php-logger": "^1.0.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "MyCoolPay\\Http\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.x-dev"
+    }
+  }
+}
