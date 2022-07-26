@@ -4,11 +4,11 @@ namespace MyCoolPay\Http;
 
 class Request
 {
-    private $method;
-    private $url;
-    private $query;
-    private $headers;
-    private $body;
+    protected $method;
+    protected $url;
+    protected $query;
+    protected $headers;
+    protected $body;
 
     /**
      * @param string|null $method

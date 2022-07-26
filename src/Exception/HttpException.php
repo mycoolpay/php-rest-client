@@ -13,7 +13,7 @@ class HttpException extends Exception implements HttpResult
     /**
      * @var Request|null
      */
-    private $request;
+    protected $request;
 
     /**
      * @param int $code

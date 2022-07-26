@@ -7,15 +7,15 @@ class Response implements HttpResult
     /**
      * @var Request|null $request
      */
-    private $request;
+    protected $request;
     /**
      * @var int $statusCode
      */
-    private $statusCode;
+    protected $statusCode;
     /**
      * @var mixed $data
      */
-    private $data;
+    protected $data;
 
     /**
      * @param int|null $status_code

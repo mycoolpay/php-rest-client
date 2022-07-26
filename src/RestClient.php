@@ -10,27 +10,27 @@ class RestClient
     /**
      * @var string $baseUrl
      */
-    private $baseUrl;
+    protected $baseUrl;
     /**
      * @var false|resource $ch
      */
-    private $ch;
+    protected $ch;
     /**
      * @var LoggerInterface $logger
      */
-    private $logger;
+    protected $logger;
     /**
      * @var bool $debug
      */
-    private $debug;
+    protected $debug;
     /**
      * @var Request $request
      */
-    private $request;
+    protected $request;
     /**
      * @var string $log
      */
-    private $log;
+    protected $log;
 
     /**
      * @param string $base_url
