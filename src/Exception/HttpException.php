@@ -36,6 +36,110 @@ class HttpException extends Exception implements HttpResult
     }
 
     /**
+     * @return bool
+     */
+    public function isBadRequest()
+    {
+        return $this->code === Http::BAD_REQUEST;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUnauthorized()
+    {
+        return $this->code === Http::UNAUTHORIZED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isForbidden()
+    {
+        return $this->code === Http::FORBIDDEN;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isNotFound()
+    {
+        return $this->code === Http::NOT_FOUND;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMethodNotAllowed()
+    {
+        return $this->code === Http::METHOD_NOT_ALLOWED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isConflict()
+    {
+        return $this->code === Http::CONFLICT;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGone()
+    {
+        return $this->code === Http::GONE;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPayloadTooLarge()
+    {
+        return $this->code === Http::PAYLOAD_TOO_LARGE;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUriTooLong()
+    {
+        return $this->code === Http::URI_TOO_LONG;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isExpectationFailed()
+    {
+        return $this->code === Http::EXPECTATION_FAILED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInternalServerError()
+    {
+        return $this->code === Http::INTERNAL_SERVER_ERROR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBadGateway()
+    {
+        return $this->code === Http::BAD_GATEWAY;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGatewayTimeout()
+    {
+        return $this->code === Http::GATEWAY_TIMEOUT;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getRequest()
