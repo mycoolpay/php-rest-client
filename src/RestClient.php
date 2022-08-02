@@ -241,12 +241,16 @@ class RestClient
 
         if (!$statusCode || $statusCode >= 400) {
             $message = $output;
+
             if (is_array($json_output)) {
                 if (array_key_exists('message', $json_output))
                     $message = $json_output['message'];
                 elseif (array_key_exists('msg', $json_output))
                     $message = $json_output['msg'];
             }
+
+            if ((empty($message) || (is_string($message) && empty(trim($message)))) && curl_errno($this->ch))
+                $message = curl_error($this->ch);
 
             throw new HttpException($statusCode, $message, $this->request);
         }
