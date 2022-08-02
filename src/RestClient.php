@@ -41,7 +41,7 @@ class RestClient
      */
     public function __construct($base_url = '', $logger = null, $debug = false)
     {
-        $this->baseUrl = preg_replace('#/$#', '', $base_url);
+        $this->baseUrl = rtrim($base_url, '/');
         $this->logger = $logger;
         $this->debug = $debug;
         $this->ch = curl_init();
@@ -168,7 +168,11 @@ class RestClient
      */
     private function setUrl($endpoint)
     {
-        $url = $this->baseUrl . '/' . preg_replace('#^/#', '', $endpoint);
+        $url = ltrim($endpoint, '/');
+
+        if (!empty($this->baseUrl))
+            $url = $this->baseUrl . '/' . $url;
+
         curl_setopt($this->ch, CURLOPT_URL, $url);
 
         if (strpos($url, '?') === false)
