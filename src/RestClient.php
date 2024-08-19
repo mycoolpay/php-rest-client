@@ -264,6 +264,37 @@ class RestClient
 
     /**
      * @param string $endpoint
+     * @param array $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @param bool $urlencoded
+     * @return Response
+     * @throws HttpException
+     */
+    public function request($method, $endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    {
+        $this->beginRequest($method);
+        $this->setUrl($endpoint);
+        $this->setHeaders($headers, $decode_json, $urlencoded);
+
+        $this->request->setBody($data);
+
+        if ($this->isDebug()) {
+            $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
+            foreach ($data as $key => $value)
+                $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
+        }
+
+        $data = $urlencoded ? http_build_query($data) : json_encode($data);
+
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
+
+        return $this->getResponse($decode_json);
+    }
+
+    /**
+     * @param string $endpoint
      * @param array $params
      * @param array $headers
      * @param bool $decode_json
@@ -297,23 +328,48 @@ class RestClient
      */
     public function post($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
     {
-        $this->beginRequest('POST');
-        $this->setUrl($endpoint);
-        $this->setHeaders($headers, $decode_json, $urlencoded);
+        return $this->request('POST', $endpoint, $data, $headers, $decode_json, $urlencoded);
+    }
 
-        $this->request->setBody($data);
+    /**
+     * @param string $endpoint
+     * @param array $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @param bool $urlencoded
+     * @return Response
+     * @throws HttpException
+     */
+    public function put($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    {
+        return $this->request('PUT', $endpoint, $data, $headers, $decode_json, $urlencoded);
+    }
 
-        if ($this->isDebug()) {
-            $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
-            foreach ($data as $key => $value)
-                $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
-        }
+    /**
+     * @param string $endpoint
+     * @param array $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @param bool $urlencoded
+     * @return Response
+     * @throws HttpException
+     */
+    public function patch($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    {
+        return $this->request('PATCH', $endpoint, $data, $headers, $decode_json, $urlencoded);
+    }
 
-        $data = $urlencoded ? http_build_query($data) : json_encode($data);
-
-        curl_setopt($this->ch, CURLOPT_POST, true);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
-
-        return $this->getResponse($decode_json);
+    /**
+     * @param string $endpoint
+     * @param array $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @param bool $urlencoded
+     * @return Response
+     * @throws HttpException
+     */
+    public function delete($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    {
+        return $this->request('DELETE', $endpoint, $data, $headers, $decode_json, $urlencoded);
     }
 }
