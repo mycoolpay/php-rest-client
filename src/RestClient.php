@@ -312,7 +312,7 @@ class RestClient
         $this->setUrl($endpoint . preg_replace('/^&/', '?', $url_suffix));
         $this->setHeaders($headers, $decode_json);
 
-        curl_setopt($this->ch, CURLOPT_HTTPGET, true);
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
         return $this->getResponse($decode_json);
     }
