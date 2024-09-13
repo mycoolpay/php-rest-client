@@ -170,7 +170,7 @@ class RestClient
     {
         $url = ltrim($endpoint, '/');
 
-        if (!empty($this->baseUrl))
+        if (!(empty($this->baseUrl) || preg_match('#^https?://#i', $url)))
             $url = $this->baseUrl . '/' . $url;
 
         curl_setopt($this->ch, CURLOPT_URL, $url);
