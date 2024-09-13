@@ -368,7 +368,7 @@ class RestClient
      * @return Response
      * @throws HttpException
      */
-    public function postXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    public function postXML($endpoint, $data = '', $headers = [], $decode_json = true)
     {
         return $this->requestXML('POST', $endpoint, $data, $headers, $decode_json);
     }
@@ -395,7 +395,7 @@ class RestClient
      * @return Response
      * @throws HttpException
      */
-    public function putXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    public function putXML($endpoint, $data = '', $headers = [], $decode_json = true)
     {
         return $this->requestXML('PUT', $endpoint, $data, $headers, $decode_json);
     }
@@ -422,7 +422,7 @@ class RestClient
      * @return Response
      * @throws HttpException
      */
-    public function patchXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    public function patchXML($endpoint, $data = '', $headers = [], $decode_json = true)
     {
         return $this->requestXML('PATCH', $endpoint, $data, $headers, $decode_json);
     }
@@ -449,7 +449,7 @@ class RestClient
      * @return Response
      * @throws HttpException
      */
-    public function deleteXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    public function deleteXML($endpoint, $data = '', $headers = [], $decode_json = true)
     {
         return $this->requestXML('DELETE', $endpoint, $data, $headers, $decode_json);
     }
