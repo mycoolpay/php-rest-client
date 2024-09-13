@@ -15,7 +15,7 @@ class Request
      * @param string|null $url
      * @param array|null $query
      * @param array|null $headers
-     * @param array|null $body
+     * @param array|string|null $body
      */
     public function __construct($method = null, $url = null, $query = [], $headers = [], $body = [])
     {
@@ -121,7 +121,7 @@ class Request
     }
 
     /**
-     * @return array|null
+     * @return array|string|null
      */
     public function getBody()
     {
@@ -129,7 +129,7 @@ class Request
     }
 
     /**
-     * @param array|null $body
+     * @param array|string|null $body
      * @return $this
      */
     public function setBody($body)

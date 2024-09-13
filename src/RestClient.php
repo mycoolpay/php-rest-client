@@ -295,6 +295,35 @@ class RestClient
 
     /**
      * @param string $endpoint
+     * @param string $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @return Response
+     * @throws HttpException
+     */
+    public function requestXML($method, $endpoint, $data = '', $headers = [], $decode_json = true)
+    {
+        $headers['Content-Type'] = 'application/xml';
+
+        $this->beginRequest($method);
+        $this->setUrl($endpoint);
+        $this->setHeaders($headers, $decode_json);
+
+        $this->request->setBody($data);
+
+        if ($this->isDebug()) {
+            $this->log .= '---------- Body (' . strlen($data) . ')' . PHP_EOL;
+            $this->log .= $data . PHP_EOL;
+        }
+
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
+
+        return $this->getResponse($decode_json);
+    }
+
+    /**
+     * @param string $endpoint
      * @param array $params
      * @param array $headers
      * @param bool $decode_json
@@ -333,6 +362,19 @@ class RestClient
 
     /**
      * @param string $endpoint
+     * @param string $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @return Response
+     * @throws HttpException
+     */
+    public function postXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    {
+        return $this->requestXML('POST', $endpoint, $data, $headers, $decode_json);
+    }
+
+    /**
+     * @param string $endpoint
      * @param array $data
      * @param array $headers
      * @param bool $decode_json
@@ -343,6 +385,19 @@ class RestClient
     public function put($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
     {
         return $this->request('PUT', $endpoint, $data, $headers, $decode_json, $urlencoded);
+    }
+
+    /**
+     * @param string $endpoint
+     * @param string $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @return Response
+     * @throws HttpException
+     */
+    public function putXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    {
+        return $this->requestXML('PUT', $endpoint, $data, $headers, $decode_json);
     }
 
     /**
@@ -361,6 +416,19 @@ class RestClient
 
     /**
      * @param string $endpoint
+     * @param string $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @return Response
+     * @throws HttpException
+     */
+    public function patchXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    {
+        return $this->requestXML('PATCH', $endpoint, $data, $headers, $decode_json);
+    }
+
+    /**
+     * @param string $endpoint
      * @param array $data
      * @param array $headers
      * @param bool $decode_json
@@ -371,5 +439,18 @@ class RestClient
     public function delete($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
     {
         return $this->request('DELETE', $endpoint, $data, $headers, $decode_json, $urlencoded);
+    }
+
+    /**
+     * @param string $endpoint
+     * @param string $data
+     * @param array $headers
+     * @param bool $decode_json
+     * @return Response
+     * @throws HttpException
+     */
+    public function deleteXML($endpoint, $data = [], $headers = [], $decode_json = true)
+    {
+        return $this->requestXML('DELETE', $endpoint, $data, $headers, $decode_json);
     }
 }
