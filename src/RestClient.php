@@ -7,8 +7,10 @@ use MyCoolPay\Logging\LoggerInterface;
 
 class RestClient
 {
-    const USER_AGENT = "MyCoolPay/PHP/RestClient";
-
+    /**
+     * @var string $agent
+     */
+    protected $agent = 'MyCoolPay/PHP/RestClient';
     /**
      * @var string $baseUrl
      */
@@ -81,6 +83,24 @@ class RestClient
     public function setCurlOptions($options)
     {
         curl_setopt_array($this->ch, $options);
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAgent()
+    {
+        return $this->agent;
+    }
+
+    /**
+     * @param string $agent
+     * @return $this
+     */
+    public function setAgent($agent)
+    {
+        $this->agent = $agent;
         return $this;
     }
 
@@ -192,16 +212,18 @@ class RestClient
     /**
      * @param array $headers
      * @param bool $decode_json
-     * @param bool $urlencoded
      * @return void
      */
-    private function setHeaders($headers, $decode_json = true, $urlencoded = false)
+    private function setHeaders($headers, $decode_json = true)
     {
-        $headers = array_merge([
-            'Content-Type' => 'application/' . ($urlencoded ? 'x-www-form-urlencoded' : 'json'),
-            'Accept' => ($decode_json ? 'application/json' : '*/*'),
-            'User-Agent' => static::USER_AGENT,
-        ], $headers);
+        $headers = array_merge(
+            [
+                'Content-Type' => 'application/json',
+                'Accept' => ($decode_json ? 'application/json' : '*/*'),
+                'User-Agent' => $this->agent,
+            ],
+            $headers
+        );
 
         $curl_headers = [];
         foreach ($headers as $key => $value)
@@ -273,9 +295,16 @@ class RestClient
      */
     public function request($method, $endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
     {
+        if ($urlencoded) {
+            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            $encoded_data = http_build_query($data);
+        } else {
+            $encoded_data = json_encode($data);
+        }
+
         $this->beginRequest($method);
         $this->setUrl($endpoint);
-        $this->setHeaders($headers, $decode_json, $urlencoded);
+        $this->setHeaders($headers, $decode_json);
 
         $this->request->setBody($data);
 
@@ -285,10 +314,8 @@ class RestClient
                 $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
         }
 
-        $data = $urlencoded ? http_build_query($data) : json_encode($data);
-
         curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $encoded_data);
 
         return $this->getResponse($decode_json);
     }
@@ -320,6 +347,44 @@ class RestClient
         curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
 
         return $this->getResponse($decode_json);
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    public function sanitizeDecodedXML(&$data)
+    {
+        foreach ($data as &$value) {
+            if ($value === [])
+                $value = null;
+            elseif (is_array($value))
+                $this->sanitizeDecodedXML($value);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param Response $response
+     * @param bool $sanitize
+     * @return Response
+     */
+    public function decodeXML($response, $sanitize = true)
+    {
+        $data = [];
+        $parsed_data = simplexml_load_string($response->getRawData());
+        if ($parsed_data) {
+            $parsed_data = json_encode($parsed_data);
+            if ($parsed_data) {
+                $data = json_decode($parsed_data, true);
+                if ($sanitize) {
+                    $this->sanitizeDecodedXML($data);
+                }
+            }
+        }
+
+        return $response->setData($data);
     }
 
     /**
