@@ -5,6 +5,7 @@ namespace MyCoolPay\Http;
 use MyCoolPay\Http\Constant\DataType;
 use MyCoolPay\Http\Constant\Http;
 use MyCoolPay\Http\Exception\HttpException;
+use MyCoolPay\Http\Inheritance\AuthStrategy;
 use MyCoolPay\Logging\LoggerInterface;
 
 class RestClient
@@ -13,6 +14,10 @@ class RestClient
      * @var string $agent
      */
     protected $agent = 'MyCoolPay/PHP/RestClient';
+    /**
+     * @var AuthStrategy|null $auth
+     */
+    protected $auth;
     /**
      * @var string $baseUrl
      */
@@ -103,6 +108,24 @@ class RestClient
     public function setAgent($agent)
     {
         $this->agent = $agent;
+        return $this;
+    }
+
+    /**
+     * @return AuthStrategy|null
+     */
+    public function getAuth()
+    {
+        return $this->auth;
+    }
+
+    /**
+     * @param AuthStrategy|null $auth
+     * @return $this
+     */
+    public function setAuth($auth)
+    {
+        $this->auth = $auth;
         return $this;
     }
 
@@ -225,6 +248,9 @@ class RestClient
         ];
         if ($data_type !== DataType::NONE) {
             $base_headers['Content-Type'] = $data_type;
+        }
+        if (!is_null($this->auth)) {
+            $base_headers = $this->auth->getAuthHeaders($base_headers);
         }
         $headers = array_merge($base_headers, $headers);
 

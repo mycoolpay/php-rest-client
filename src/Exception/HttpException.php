@@ -185,7 +185,7 @@ class HttpException extends Exception implements HttpResult
      * @param Response $res
      * @return static
      */
-    public static function fromJSONResponse(Response $res)
+    public static function fromResponse(Response $res)
     {
         return new self(Http::EXPECTATION_FAILED, $res->getRawData(), $res->getRequest());
     }
