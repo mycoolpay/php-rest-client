@@ -13,19 +13,29 @@ class Response implements HttpResult
      */
     protected $statusCode;
     /**
+     * @var string $raw_data
+     */
+    protected $raw_data;
+    /**
      * @var mixed $data
      */
     protected $data;
+    /**
+     * @var string $data_type
+     */
+    protected $data_type;
 
     /**
      * @param int|null $status_code
      * @param mixed $data
      * @param Request|null $request
      */
-    public function __construct($status_code, $data, $request = null)
+    public function __construct($status_code, $raw_data, $data, $data_type, $request = null)
     {
         $this->statusCode = is_null($status_code) ? 0 : $status_code;
+        $this->raw_data = $raw_data;
         $this->data = $data;
+        $this->data_type = $data_type;
         $this->request = $request;
     }
 
@@ -70,17 +80,21 @@ class Response implements HttpResult
      */
     public function getRawData()
     {
-        if (is_null($this->data) || is_string($this->data))
-            return $this->data;
-
-        if (is_array($this->data))
-            return json_encode($this->data);
-
-        return strval($this->data);
+        return $this->raw_data;
     }
 
     /**
-     * @return mixed|null
+     * @param mixed $raw_data
+     * @return $this
+     */
+    public function setRawData($raw_data)
+    {
+        $this->raw_data = $raw_data;
+        return $this;
+    }
+
+    /**
+     * @return mixed
      */
     public function getData()
     {
@@ -88,7 +102,7 @@ class Response implements HttpResult
     }
 
     /**
-     * @param mixed|null $data
+     * @param mixed $data
      * @return $this
      */
     public function setData($data)
@@ -99,8 +113,8 @@ class Response implements HttpResult
 
     /**
      * @param string $key
-     * @param mixed|null $default
-     * @return mixed|null
+     * @param mixed $default
+     * @return mixed
      */
     public function get($key, $default = null)
     {
@@ -120,7 +134,7 @@ class Response implements HttpResult
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function getMessage()
     {

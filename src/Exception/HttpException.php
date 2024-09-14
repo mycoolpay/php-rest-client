@@ -168,6 +168,14 @@ class HttpException extends Exception implements HttpResult
     /**
      * @inheritDoc
      */
+    public function getData()
+    {
+        return $this->message;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function __toString()
     {
         return "HttpException " . $this->code . ($this->message !== "" ? ": " . $this->message : "");

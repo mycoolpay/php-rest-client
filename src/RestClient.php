@@ -211,19 +211,20 @@ class RestClient
 
     /**
      * @param array $headers
-     * @param bool $decode_json
+     * @param string $data_type
+     * @param string $response_type
      * @return void
      */
-    private function setHeaders($headers, $decode_json = true)
+    protected function setHeaders($headers, $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        $headers = array_merge(
-            [
-                'Content-Type' => 'application/json',
-                'Accept' => ($decode_json ? 'application/json' : '*/*'),
-                'User-Agent' => $this->agent,
-            ],
-            $headers
-        );
+        $base_headers = [
+            'Accept' => $response_type,
+            'User-Agent' => $this->agent,
+        ];
+        if ($data_type !== DataType::NONE) {
+            $base_headers['Content-Type'] = $data_type;
+        }
+        $headers = array_merge($base_headers, $headers);
 
         $curl_headers = [];
         foreach ($headers as $key => $value)
@@ -241,119 +242,10 @@ class RestClient
     }
 
     /**
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    private function getResponse($decode_json)
-    {
-        $output = curl_exec($this->ch);
-        $statusCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-        $json_output = json_decode($output, true);
-
-        if ($this->isDebug()) {
-            $this->log .= '---------- Response HTTP/1.1 ' . $statusCode . ' (' . strlen($output) . ' o)' . PHP_EOL;
-
-            if ($decode_json && is_array($json_output))
-                foreach ($json_output as $key => $value)
-                    $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
-            else
-                $this->log .= $output . PHP_EOL;
-
-            $this->log .= '>>>>>>>>>> End HTTP Request <<<<<<<<<<';
-
-            $this->logger->debug($this->log);
-        }
-
-        if (!$statusCode || $statusCode >= 400) {
-            $message = $output;
-
-            if (is_array($json_output)) {
-                if (array_key_exists('message', $json_output))
-                    $message = $json_output['message'];
-                elseif (array_key_exists('msg', $json_output))
-                    $message = $json_output['msg'];
-            }
-
-            if ((empty($message) || (is_string($message) && empty(trim($message)))) && curl_errno($this->ch))
-                $message = curl_error($this->ch);
-
-            throw new HttpException($statusCode, $message, $this->request);
-        }
-
-        return new Response($statusCode, $decode_json ? $json_output : $output, $this->request);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param array $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @param bool $urlencoded
-     * @return Response
-     * @throws HttpException
-     */
-    public function request($method, $endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
-    {
-        if ($urlencoded) {
-            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            $encoded_data = http_build_query($data);
-        } else {
-            $encoded_data = json_encode($data);
-        }
-
-        $this->beginRequest($method);
-        $this->setUrl($endpoint);
-        $this->setHeaders($headers, $decode_json);
-
-        $this->request->setBody($data);
-
-        if ($this->isDebug()) {
-            $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
-            foreach ($data as $key => $value)
-                $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
-        }
-
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $encoded_data);
-
-        return $this->getResponse($decode_json);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param string $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    public function requestXML($method, $endpoint, $data = '', $headers = [], $decode_json = true)
-    {
-        $headers['Content-Type'] = 'application/xml';
-
-        $this->beginRequest($method);
-        $this->setUrl($endpoint);
-        $this->setHeaders($headers, $decode_json);
-
-        $this->request->setBody($data);
-
-        if ($this->isDebug()) {
-            $this->log .= '---------- Body (' . strlen($data) . ')' . PHP_EOL;
-            $this->log .= $data . PHP_EOL;
-        }
-
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
-
-        return $this->getResponse($decode_json);
-    }
-
-    /**
      * @param array $data
      * @return array
      */
-    public function sanitizeDecodedXML(&$data)
+    protected function sanitizeDecodedXML(&$data)
     {
         foreach ($data as &$value) {
             if ($value === [])
@@ -366,156 +258,182 @@ class RestClient
     }
 
     /**
-     * @param Response $response
-     * @param bool $sanitize
+     * @param string $format
      * @return Response
+     * @throws HttpException
      */
-    public function decodeXML($response, $sanitize = true)
+    protected function getResponse($format = DataType::JSON)
     {
-        $data = [];
-        $parsed_data = simplexml_load_string($response->getRawData());
-        if ($parsed_data) {
-            $parsed_data = json_encode($parsed_data);
-            if ($parsed_data) {
-                $data = json_decode($parsed_data, true);
-                if ($sanitize) {
-                    $this->sanitizeDecodedXML($data);
-                }
+        $output = curl_exec($this->ch);
+        $statusCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+        $parsed_output = null;
+
+        if ($output !== false && $format !== DataType::ANY) {
+            switch ($format) {
+                case DataType::JSON:
+                    $parsed_output = json_decode($output, true);
+                    break;
+                case DataType::XML:
+                    $parsed_output = [];
+                    $parsed_xml = simplexml_load_string($output);
+                    if ($parsed_xml) {
+                        $parsed_xml = json_encode($parsed_xml);
+                        if ($parsed_xml) {
+                            $parsed_xml = json_decode($parsed_xml, true);
+                            $parsed_output = $this->sanitizeDecodedXML($parsed_xml);
+                        }
+                    }
+                    break;
+                default:
+                    $parsed_output = $output;
             }
         }
 
-        return $response->setData($data);
+        if ($this->isDebug()) {
+            $this->log .= '---------- Response HTTP/1.1 ' . $statusCode . ' (' . strlen($output) . ' o)' . PHP_EOL;
+            $this->log .= $output . PHP_EOL;
+            $this->log .= '>>>>>>>>>> End HTTP Request <<<<<<<<<<';
+
+            $this->logger->debug($this->log);
+        }
+
+        if (!$statusCode || $statusCode >= 400) {
+            $message = $output;
+
+            if (is_array($parsed_output)) {
+                if (array_key_exists('message', $parsed_output))
+                    $message = $parsed_output['message'];
+                elseif (array_key_exists('msg', $parsed_output))
+                    $message = $parsed_output['msg'];
+            }
+
+            if ((empty($message) || (is_string($message) && empty(trim($message)))) && curl_errno($this->ch))
+                $message = curl_error($this->ch);
+
+            throw new HttpException($statusCode, $message, $this->request);
+        }
+
+        return new Response($statusCode, $output, $parsed_output, $format, $this->request);
+    }
+
+    /**
+     * @param string $method
+     * @param string $endpoint
+     * @param mixed $data
+     * @param array $headers
+     * @param string $data_type
+     * @param string $response_type
+     * @return Response
+     * @throws HttpException
+     */
+    public function request($method, $endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
+    {
+        $this->beginRequest($method);
+        $this->setUrl($endpoint);
+        $this->setHeaders($headers, $data_type, $response_type);
+
+        $this->request->setBody($data);
+
+        if ($this->isDebug()) {
+            $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
+            foreach ($data as $key => $value)
+                $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
+        }
+
+        switch ($data_type) {
+            case DataType::JSON:
+                $encoded_data = json_encode($data);
+                break;
+            case DataType::URL_ENCODED:
+                $encoded_data = http_build_query($data);
+                break;
+            default:
+                $encoded_data = $data;
+        }
+
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $encoded_data);
+
+        return $this->getResponse($response_type);
     }
 
     /**
      * @param string $endpoint
      * @param array $params
      * @param array $headers
-     * @param bool $decode_json
+     * @param string $response_type
      * @return Response
      * @throws HttpException
      */
-    public function get($endpoint, $params = [], $headers = [], $decode_json = true)
+    public function get($endpoint, $params = [], $headers = [], $response_type = DataType::JSON)
     {
         $this->beginRequest();
 
-        $url_suffix = '';
-        foreach ($params as $key => $value)
-            $url_suffix .= '&' . $key . '=' . urlencode($value);
+        $querystring = http_build_query($params);
+        if (!empty($querystring))
+            $querystring = '?' . $querystring;
 
-        $this->setUrl($endpoint . preg_replace('/^&/', '?', $url_suffix));
-        $this->setHeaders($headers, $decode_json);
+        $this->setUrl($endpoint . $querystring);
+        $this->setHeaders($headers, DataType::NONE, $response_type);
 
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, Http::GET);
 
-        return $this->getResponse($decode_json);
+        return $this->getResponse($response_type);
     }
 
     /**
      * @param string $endpoint
      * @param array $data
      * @param array $headers
-     * @param bool $decode_json
-     * @param bool $urlencoded
+     * @param string $data_type
+     * @param string $response_type
      * @return Response
      * @throws HttpException
      */
-    public function post($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    public function post($endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        return $this->request('POST', $endpoint, $data, $headers, $decode_json, $urlencoded);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param string $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    public function postXML($endpoint, $data = '', $headers = [], $decode_json = true)
-    {
-        return $this->requestXML('POST', $endpoint, $data, $headers, $decode_json);
+        return $this->request(Http::POST, $endpoint, $data, $headers, $data_type, $response_type);
     }
 
     /**
      * @param string $endpoint
      * @param array $data
      * @param array $headers
-     * @param bool $decode_json
-     * @param bool $urlencoded
+     * @param string $data_type
+     * @param string $response_type
      * @return Response
      * @throws HttpException
      */
-    public function put($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    public function put($endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        return $this->request('PUT', $endpoint, $data, $headers, $decode_json, $urlencoded);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param string $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    public function putXML($endpoint, $data = '', $headers = [], $decode_json = true)
-    {
-        return $this->requestXML('PUT', $endpoint, $data, $headers, $decode_json);
+        return $this->request(Http::PUT, $endpoint, $data, $headers, $data_type, $response_type);
     }
 
     /**
      * @param string $endpoint
      * @param array $data
      * @param array $headers
-     * @param bool $decode_json
-     * @param bool $urlencoded
+     * @param string $data_type
+     * @param string $response_type
      * @return Response
      * @throws HttpException
      */
-    public function patch($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    public function patch($endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        return $this->request('PATCH', $endpoint, $data, $headers, $decode_json, $urlencoded);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param string $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    public function patchXML($endpoint, $data = '', $headers = [], $decode_json = true)
-    {
-        return $this->requestXML('PATCH', $endpoint, $data, $headers, $decode_json);
+        return $this->request(Http::PATCH, $endpoint, $data, $headers, $data_type, $response_type);
     }
 
     /**
      * @param string $endpoint
      * @param array $data
      * @param array $headers
-     * @param bool $decode_json
-     * @param bool $urlencoded
+     * @param string $data_type
+     * @param string $response_type
      * @return Response
      * @throws HttpException
      */
-    public function delete($endpoint, $data = [], $headers = [], $decode_json = true, $urlencoded = false)
+    public function delete($endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        return $this->request('DELETE', $endpoint, $data, $headers, $decode_json, $urlencoded);
-    }
-
-    /**
-     * @param string $endpoint
-     * @param string $data
-     * @param array $headers
-     * @param bool $decode_json
-     * @return Response
-     * @throws HttpException
-     */
-    public function deleteXML($endpoint, $data = '', $headers = [], $decode_json = true)
-    {
-        return $this->requestXML('DELETE', $endpoint, $data, $headers, $decode_json);
+        return $this->request(Http::DELETE, $endpoint, $data, $headers, $data_type, $response_type);
     }
 }

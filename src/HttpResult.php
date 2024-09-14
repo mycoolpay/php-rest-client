@@ -18,4 +18,9 @@ interface HttpResult
      * @return string|null
      */
     public function getRawData();
+
+    /**
+     * @return mixed
+     */
+    public function getData();
 }
