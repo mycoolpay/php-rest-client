@@ -9,6 +9,8 @@ class Request
     protected $query;
     protected $headers;
     protected $body;
+    protected $data_type;
+    protected $response_type;
 
     /**
      * @param string|null $method
@@ -16,14 +18,18 @@ class Request
      * @param array|null $query
      * @param array|null $headers
      * @param array|string|null $body
+     * @param string $data_type
+     * @param string $response_type
      */
-    public function __construct($method = null, $url = null, $query = [], $headers = [], $body = [])
+    public function __construct($method = null, $url = null, $query = [], $headers = [], $body = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
         $this->method = $method;
         $this->url = $url;
         $this->query = is_null($query) ? [] : $query;
         $this->headers = is_null($headers) ? [] : $headers;
         $this->body = is_null($body) ? [] : $body;
+        $this->data_type = $data_type;
+        $this->response_type = $response_type;
     }
 
     /**
@@ -146,6 +152,42 @@ class Request
     public function addBody($key, $value)
     {
         $this->body[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDataType()
+    {
+        return $this->data_type;
+    }
+
+    /**
+     * @param string|null $data_type
+     * @return $this
+     */
+    public function setDataType($data_type)
+    {
+        $this->data_type = $data_type;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getResponseType()
+    {
+        return $this->response_type;
+    }
+
+    /**
+     * @param string|null $response_type
+     * @return $this
+     */
+    public function setResponseType($response_type)
+    {
+        $this->response_type = $response_type;
         return $this;
     }
 }

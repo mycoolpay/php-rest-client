@@ -144,7 +144,7 @@ class RestClient
      * @param string $method
      * @return void
      */
-    private function beginRequest($method = 'GET')
+    private function beginRequest($method = Http::GET)
     {
         $this->request = new Request($method);
 
@@ -232,7 +232,9 @@ class RestClient
 
         curl_setopt($this->ch, CURLOPT_HTTPHEADER, $curl_headers);
 
-        $this->request->setHeaders($headers);
+        $this->request->setHeaders($headers)
+            ->setDataType($data_type)
+            ->setResponseType($response_type);
 
         if ($this->isDebug()) {
             $this->log .= '---------- Headers (' . count($curl_headers) . ')' . PHP_EOL;
@@ -317,6 +319,30 @@ class RestClient
     }
 
     /**
+     * @param string $endpoint
+     * @param array $params
+     * @param array $headers
+     * @param string $response_type
+     * @return Response
+     * @throws HttpException
+     */
+    public function get($endpoint, $params = [], $headers = [], $response_type = DataType::JSON)
+    {
+        $this->beginRequest();
+
+        $querystring = http_build_query($params);
+        if (!empty($querystring))
+            $querystring = '?' . $querystring;
+
+        $this->setUrl($endpoint . $querystring);
+        $this->setHeaders($headers, DataType::NONE, $response_type);
+
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, Http::GET);
+
+        return $this->getResponse($response_type);
+    }
+
+    /**
      * @param string $method
      * @param string $endpoint
      * @param mixed $data
@@ -328,6 +354,10 @@ class RestClient
      */
     public function request($method, $endpoint, $data = [], $headers = [], $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
+        if ($method === Http::GET) {
+            return $this->get($endpoint, [], $headers, $response_type);
+        }
+
         $this->beginRequest($method);
         $this->setUrl($endpoint);
         $this->setHeaders($headers, $data_type, $response_type);
@@ -358,27 +388,20 @@ class RestClient
     }
 
     /**
-     * @param string $endpoint
-     * @param array $params
-     * @param array $headers
-     * @param string $response_type
+     * @param Request $request
      * @return Response
      * @throws HttpException
      */
-    public function get($endpoint, $params = [], $headers = [], $response_type = DataType::JSON)
+    public function execute($request)
     {
-        $this->beginRequest();
-
-        $querystring = http_build_query($params);
-        if (!empty($querystring))
-            $querystring = '?' . $querystring;
-
-        $this->setUrl($endpoint . $querystring);
-        $this->setHeaders($headers, DataType::NONE, $response_type);
-
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, Http::GET);
-
-        return $this->getResponse($response_type);
+        return $this->request(
+            $request->getMethod(),
+            $request->getUrl(),
+            $request->getBody(),
+            $request->getHeaders(),
+            $request->getDataType(),
+            $request->getResponseType()
+        );
     }
 
     /**
