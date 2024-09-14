@@ -2,6 +2,8 @@
 
 namespace MyCoolPay\Http;
 
+use MyCoolPay\Http\Constant\DataType;
+
 class Request
 {
     protected $method;

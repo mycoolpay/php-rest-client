@@ -3,8 +3,8 @@
 namespace MyCoolPay\Http\Exception;
 
 use Exception;
-use MyCoolPay\Http\Http;
-use MyCoolPay\Http\HttpResult;
+use MyCoolPay\Http\Constant\Http;
+use MyCoolPay\Http\Inheritance\HttpResult;
 use MyCoolPay\Http\Request;
 use MyCoolPay\Http\Response;
 

@@ -1,6 +1,8 @@
 <?php
 
-namespace MyCoolPay\Http;
+namespace MyCoolPay\Http\Inheritance;
+
+use MyCoolPay\Http\Request;
 
 interface HttpResult
 {

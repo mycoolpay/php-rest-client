@@ -2,6 +2,9 @@
 
 namespace MyCoolPay\Http;
 
+use MyCoolPay\Http\Constant\DataType;
+use MyCoolPay\Http\Inheritance\HttpResult;
+
 class Response implements HttpResult
 {
     /**
@@ -30,7 +33,7 @@ class Response implements HttpResult
      * @param mixed $data
      * @param Request|null $request
      */
-    public function __construct($status_code, $raw_data, $data, $data_type, $request = null)
+    public function __construct($status_code, $raw_data = '', $data = [], $data_type = DataType::JSON, $request = null)
     {
         $this->statusCode = is_null($status_code) ? 0 : $status_code;
         $this->raw_data = $raw_data;

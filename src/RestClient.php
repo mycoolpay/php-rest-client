@@ -2,6 +2,8 @@
 
 namespace MyCoolPay\Http;
 
+use MyCoolPay\Http\Constant\DataType;
+use MyCoolPay\Http\Constant\Http;
 use MyCoolPay\Http\Exception\HttpException;
 use MyCoolPay\Logging\LoggerInterface;
 

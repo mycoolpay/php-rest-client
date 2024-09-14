@@ -1,6 +1,6 @@
 <?php
 
-namespace MyCoolPay\Http;
+namespace MyCoolPay\Http\Constant;
 
 /**
  * HTTP status codes
