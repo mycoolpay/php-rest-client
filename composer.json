@@ -27,7 +27,7 @@
     "ext-curl": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "mycoolpay/php-logger": "^1.0.3"
+    "mycoolpay/php-logger": "^2.0.0"
   },
   "autoload": {
     "psr-4": {

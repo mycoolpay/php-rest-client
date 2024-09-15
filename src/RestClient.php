@@ -23,6 +23,10 @@ class RestClient
      */
     protected $baseUrl;
     /**
+     * @var array $baseHeaders
+     */
+    protected $baseHeaders = [];
+    /**
      * @var false|resource $ch
      */
     protected $ch;
@@ -50,7 +54,7 @@ class RestClient
      */
     public function __construct($base_url = '', $logger = null, $debug = false)
     {
-        $this->baseUrl = rtrim($base_url, '/');
+        $this->setBaseUrl($base_url);
         $this->logger = $logger;
         $this->debug = $debug;
         $this->ch = curl_init();
@@ -138,12 +142,63 @@ class RestClient
     }
 
     /**
-     * @param string $baseUrl
+     * @param string $base_url
      * @return $this
      */
-    public function setBaseUrl($baseUrl)
+    public function setBaseUrl($base_url)
     {
-        $this->baseUrl = $baseUrl;
+        $this->baseUrl = rtrim($base_url, '/');
+        return $this;
+    }
+
+    /**
+     * @param array $additional_headers
+     * @return array
+     */
+    public function getBaseHeaders($additional_headers = [])
+    {
+        return array_merge($this->baseHeaders, $additional_headers);
+    }
+
+    /**
+     * @param array $headers
+     * @return $this
+     */
+    public function setBaseHeaders($headers)
+    {
+        $this->baseHeaders = $headers;
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param string $value
+     * @return $this
+     */
+    public function setBaseHeader($name, $value)
+    {
+        $this->baseHeaders[$name] = $value;
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function removeBaseHeader($name)
+    {
+        if (array_key_exists($name, $this->baseHeaders))
+            unset($this->baseHeaders[$name]);
+        return $this;
+    }
+
+    /**
+     * @param array $headers
+     * @return $this
+     */
+    public function addBaseHeaders($headers)
+    {
+        $this->baseHeaders = array_merge($this->baseHeaders, $headers);
         return $this;
     }
 
@@ -242,10 +297,10 @@ class RestClient
      */
     protected function setHeaders($headers, $data_type = DataType::JSON, $response_type = DataType::JSON)
     {
-        $base_headers = [
+        $base_headers = $this->getBaseHeaders([
             'Accept' => $response_type,
             'User-Agent' => $this->agent,
-        ];
+        ]);
         if ($data_type !== DataType::NONE) {
             $base_headers['Content-Type'] = $data_type;
         }
@@ -337,7 +392,10 @@ class RestClient
                     $message = $parsed_output['msg'];
             }
 
-            if ((empty($message) || (is_string($message) && empty(trim($message)))) && curl_errno($this->ch))
+            if (is_string($message))
+                $message = trim($message);
+
+            if (empty($message) && curl_errno($this->ch))
                 $message = curl_error($this->ch);
 
             throw new HttpException($statusCode, $message, $this->request);
@@ -394,8 +452,12 @@ class RestClient
 
         if ($this->isDebug()) {
             $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
-            foreach ($data as $key => $value)
-                $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
+            if (is_array($data)) {
+                foreach ($data as $key => $value)
+                    $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
+            } else {
+                $this->log .= $data;
+            }
         }
 
         switch ($data_type) {

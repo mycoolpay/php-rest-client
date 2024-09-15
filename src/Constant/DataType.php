@@ -14,8 +14,7 @@ class DataType
     const XML = 'application/xml';
     const YAML = 'application/yaml';
     const MULTIPART = 'multipart/form-data';
-    const TEXT = 'text/*';
-    const PLAIN_TEXT = 'text/plain';
+    const TEXT = 'text/plain';
     const HTML = 'text/html';
     const CSV = 'text/csv';
 }
