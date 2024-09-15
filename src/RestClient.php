@@ -451,7 +451,8 @@ class RestClient
         $this->request->setBody($data);
 
         if ($this->isDebug()) {
-            $this->log .= '---------- Body (' . count($data) . ')' . PHP_EOL;
+            $size = is_array($data) ? count($data) : strlen($data) . ' o';
+            $this->log .= "---------- Body ($size)" . PHP_EOL;
             if (is_array($data)) {
                 foreach ($data as $key => $value)
                     $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
