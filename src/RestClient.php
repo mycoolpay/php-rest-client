@@ -145,7 +145,7 @@ class RestClient
      * @param string $base_url
      * @return $this
      */
-    public function setBaseUrl($base_url)
+    final public function setBaseUrl($base_url)
     {
         $this->baseUrl = rtrim($base_url, '/');
         return $this;

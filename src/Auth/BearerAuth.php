@@ -9,7 +9,7 @@ class BearerAuth implements AuthStrategy
     /**
      * @var string $token
      */
-    private $token;
+    protected $token;
 
     /**
      * @param string $token

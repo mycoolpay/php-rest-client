@@ -9,11 +9,11 @@ class BasicAuth implements AuthStrategy
     /**
      * @var string $username
      */
-    private $username;
+    protected $username;
     /**
      * @var string $password
      */
-    private $password;
+    protected $password;
 
     /**
      * @param string $username
