@@ -221,12 +221,24 @@ class RestClient
     }
 
     /**
+     * @return string|null
+     */
+    public function getIp()
+    {
+        if (!empty($_SERVER['SERVER_ADDR']))
+            return $_SERVER['SERVER_ADDR'];
+        if (!empty($_SERVER['REMOTE_ADDR']))
+            return $_SERVER['REMOTE_ADDR'];
+        return null;
+    }
+
+    /**
      * @param string $method
      * @return void
      */
     private function beginRequest($method = Http::GET)
     {
-        $this->request = new Request($method);
+        $this->request = (new Request($method))->setIp($this->getIp());
 
         if ($this->isDebug()) {
             $this->log = 'HTTP Request' . PHP_EOL
