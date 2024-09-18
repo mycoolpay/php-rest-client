@@ -6,6 +6,7 @@ use MyCoolPay\Http\Constant\DataType;
 
 class Request
 {
+    protected $ip;
     protected $method;
     protected $url;
     protected $query;
@@ -32,6 +33,24 @@ class Request
         $this->body = is_null($body) ? [] : $body;
         $this->data_type = $data_type;
         $this->response_type = $response_type;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getIp()
+    {
+        return $this->ip;
+    }
+
+    /**
+     * @param string|null $ip
+     * @return $this
+     */
+    public function setIp($ip)
+    {
+        $this->ip = $ip;
+        return $this;
     }
 
     /**
