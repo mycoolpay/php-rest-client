@@ -457,7 +457,7 @@ class RestClient
                 foreach ($data as $key => $value)
                     $this->log .= $key . ': ' . (is_array($value) ? json_encode($value) : $value) . PHP_EOL;
             } else {
-                $this->log .= $data;
+                $this->log .= $data . PHP_EOL;
             }
         }
 
@@ -497,7 +497,7 @@ class RestClient
 
     /**
      * @param string $endpoint
-     * @param array $data
+     * @param mixed $data
      * @param array $headers
      * @param string $data_type
      * @param string $response_type
@@ -511,7 +511,7 @@ class RestClient
 
     /**
      * @param string $endpoint
-     * @param array $data
+     * @param mixed $data
      * @param array $headers
      * @param string $data_type
      * @param string $response_type
@@ -525,7 +525,7 @@ class RestClient
 
     /**
      * @param string $endpoint
-     * @param array $data
+     * @param mixed $data
      * @param array $headers
      * @param string $data_type
      * @param string $response_type
@@ -539,7 +539,7 @@ class RestClient
 
     /**
      * @param string $endpoint
-     * @param array $data
+     * @param mixed $data
      * @param array $headers
      * @param string $data_type
      * @param string $response_type
